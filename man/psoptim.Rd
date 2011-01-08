@@ -62,7 +62,7 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
     \code{fn(par)/fnscale}. Defaults to \code{1}.
   }
   \item{maxit:}{
-    The maximum number of iterations. Defaults to \code{100}.
+    The maximum number of iterations. Defaults to \code{1000}.
   }
   \item{maxf:}{
     The maximum number of function evaluations (not considering any

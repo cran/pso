@@ -15,8 +15,8 @@ routines are provided for easy testing and graphics.
 \tabular{ll}{
 Package: \tab pso\cr
 Type: \tab Package\cr
-Version: \tab 1.0.0\cr
-Date: \tab 2010-09-22\cr
+Version: \tab 1.0.1\cr
+Date: \tab 2011-01-08\cr
 License: \tab LGPL-3\cr
 LazyLoad: \tab yes\cr
 Depends: \tab methods\cr

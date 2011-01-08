@@ -1,6 +1,6 @@
 Package: pso
-Version: 1.0.0
-Date: 2010-09-22
+Version: 1.0.1
+Date: 2011-01-08
 Title: Particle Swarm Optimization
 Author: Claus Bendtsen <papyrus.bendtsen@gmail.com>.
 Maintainer: Claus Bendtsen <papyrus.bendtsen@gmail.com>
@@ -13,6 +13,6 @@ Description: The package provides an implementation of PSO consistent
 License: LGPL-3
 LazyLoad: yes
 LazyData: yes
-Packaged: 2010-09-22 10:39:26 UTC; bendtsen
+Packaged: 2011-01-09 22:15:47 UTC; bendtsen
 Repository: CRAN
-Date/Publication: 2010-09-22 14:59:46
+Date/Publication: 2011-01-10 07:46:41
