@@ -14,7 +14,8 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
               c.p = .5+log(2), c.g = .5+log(2), d = NA,
               v.max = NA, rand.order = TRUE, max.restart=Inf,
               maxit.stagnate = Inf,
-              vectorize=FALSE, hybrid = FALSE, hybrid.control = NULL)
+              vectorize=FALSE, hybrid = FALSE, hybrid.control = NULL,
+              trace.stats = FALSE)
   nmsC <- names(con)
   con[(namc <- names(control))] <- control
   if (length(noNms <- namc[!namc %in% nmsC])) 
@@ -24,7 +25,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
     stop("fixed bounds must be provided")
 
   p.trace <- con[["trace"]]>0L # provide output on progress?
-  p.fnscale <- con[["fnscale"]] # provide output on progress?
+  p.fnscale <- con[["fnscale"]] # scale funcion by 1/fnscale
   p.maxit <- con[["maxit"]] # maximal number of iterations
   p.maxf <- con[["maxf"]] # maximal number of function evaluations
   p.abstol <- con[["abstol"]] # absolute tolerance for convergence
@@ -47,12 +48,18 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
   p.maxrestart <- con[["max.restart"]] # maximal number of restarts
   p.maxstagnate <- con[["maxit.stagnate"]] # maximal number of iterations without improvement
   p.vectorize <- as.logical(con[["vectorize"]]) # vectorize?
-  p.hybrid <- as.logical(con[["hybrid"]]) # use local BFGS search
+  if (is.character(con[["hybrid"]])) {
+    p.hybrid <- pmatch(con[["hybrid"]],c("off","on","improved"))-1
+    if (is.na(p.hybrid)) stop("hybrid should be one of \"off\", \"on\", \"improved\"")
+  } else {
+    p.hybrid <- as.integer(as.logical(con[["hybrid"]])) # use local BFGS search
+  }
   p.hcontrol <- con[["hybrid.control"]] # control parameters for hybrid optim
   if ("fnscale" %in% names(p.hcontrol))
     p.hcontrol["fnscale"] <- p.hcontrol["fnscale"]*p.fnscale
   else
     p.hcontrol["fnscale"] <- p.fnscale
+  p.trace.stats <- as.logical(con[["trace.stats"]]) # collect detailed stats?
   
   if (p.trace) {
     message("S=",p.s,", K=",con[["k"]],", p=",signif(p.p,4),", w0=",
@@ -61,7 +68,13 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
             ", c.g=",signif(p.c.g,4))
     message("v.max=",signif(con[["v.max"]],4),
             ", d=",signif(p.d,4),", vectorize=",p.vectorize,
-            ", hybrid=",p.hybrid)
+            ", hybrid=",c("off","on","improved")[p.hybrid+1])
+    if (p.trace.stats) {
+      stats.trace.it <- c()
+      stats.trace.error <- c()
+      stats.trace.f <- NULL
+      stats.trace.x <- NULL
+    }
   }
   ## Initialization
   if (p.reltol!=0) p.reltol <- p.reltol*p.d
@@ -85,8 +98,15 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
   i.best <- which.min(f.p)
   error <- f.p[i.best]
   init.links <- TRUE
-  if (p.trace && p.report==1)
+  if (p.trace && p.report==1) {
     message("It 1: fitness=",signif(error,4))
+    if (p.trace.stats) {
+      stats.trace.it <- c(stats.trace.it,1)
+      stats.trace.error <- c(stats.trace.error,error)
+      stats.trace.f <- c(stats.trace.f,list(f.x))
+      stats.trace.x <- c(stats.trace.x,list(X))
+    }
+  }
   ## Iterations
   stats.iter <- 1
   stats.restart <- 0
@@ -131,7 +151,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
           V[temp,i] <- 0
         }
         ## Evaluate function
-        if (p.hybrid) {
+        if (p.hybrid==1) {
           temp <- optim(X[,i],fn,gr,...,method="L-BFGS-B",lower=lower,
                         upper=upper,control=p.hcontrol)
           V[,i] <- V[,i]+temp$par-X[,i] # disregards any v.max imposed
@@ -147,6 +167,16 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
           f.p[i] <- f.x[i]
           if (f.p[i]<f.p[i.best]) {
             i.best <- i
+            if (p.hybrid==2) {
+              temp <- optim(X[,i],fn,gr,...,method="L-BFGS-B",lower=lower,
+                            upper=upper,control=p.hcontrol)
+              V[,i] <- V[,i]+temp$par-X[,i] # disregards any v.max imposed
+              X[,i] <- temp$par
+              P[,i] <- temp$par
+              f.x[i] <- temp$value
+              f.p[i] <- temp$value
+              stats.feval <- stats.feval+as.integer(temp$counts[1])
+            }
           }
         }
         if (stats.feval>=p.maxf) break
@@ -180,7 +210,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
         V[temp] <- 0
       }
       ## Evaluate function
-      if (p.hybrid) { # not really vectorizing
+      if (p.hybrid==1) { # not really vectorizing
         for (i in 1:p.s) {
           temp <- optim(X[,i],fn,gr,...,method="L-BFGS-B",lower=lower,
                         upper=upper,control=p.hcontrol)
@@ -198,6 +228,16 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
         P[,temp] <- X[,temp]
         f.p[temp] <- f.x[temp]
         i.best <- which.min(f.p)
+        if (temp[i.best] && p.hybrid==2) { # overall improvement
+          temp <- optim(X[,i.best],fn,gr,...,method="L-BFGS-B",lower=lower,
+                        upper=upper,control=p.hcontrol)
+          V[,i.best] <- V[,i.best]+temp$par-X[,i.best] # disregards any v.max imposed
+          X[,i.best] <- temp$par
+          P[,i.best] <- temp$par
+          f.x[i.best] <- temp$value
+          f.p[i.best] <- temp$value
+          stats.feval <- stats.feval+as.integer(temp$counts[1])
+        }
       }
       if (stats.feval>=p.maxf) break
     }
@@ -225,6 +265,12 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
                 ", swarm diam.=",signif(d,4))
       else
         message("It ",stats.iter,": fitness=",signif(error,4))
+      if (p.trace.stats) {
+        stats.trace.it <- c(stats.trace.it,stats.iter)
+        stats.trace.error <- c(stats.trace.error,error)
+        stats.trace.f <- c(stats.trace.f,list(f.x))
+        stats.trace.x <- c(stats.trace.x,list(X))
+      }
     }
   }
   if (error<=p.abstol) {
@@ -248,6 +294,10 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
             counts=c("function"=stats.feval,"iteration"=stats.iter,
               "restarts"=stats.restart),
             convergence=msgcode,message=msg)
+  if (p.trace && p.trace.stats) o <- c(o,list(stats=list(it=stats.trace.it,
+                                                error=stats.trace.error,
+                                                f=stats.trace.f,
+                                                x=stats.trace.x)))
   return(o)
 }
 

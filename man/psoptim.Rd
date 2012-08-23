@@ -83,6 +83,9 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
     The frequency for reports if \code{control$trace} is
     positive. Defaults to \code{10}.
   }
+  \item{trace.stats:}{Logical; if \code{TRUE} statistics at every
+  reporting step are collected and returned. Defaults to \code{FALSE}.
+  }
   \item{s:}{
     The swarm size. Defaults to \code{floor(10+2*sqrt(length(par)))}.
   }
@@ -135,15 +138,20 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
     evaluations. Defaults to \code{FALSE}. 
   }
   \item{hybrid:}{
-    If true, each normal PSO position update is followed by an L-BFGS-B
-    search with the provided position as initial guess. This makes the
-    implementation a hybrid approach. Defaults to
-    \code{FALSE} which disables BFGS for the local search. Note that no
-    attempt is done to control the maximal number of function evaluations
-    within the local search step (this can be done separately through
-    \code{hybrid.control}) but the number of function evaluations used by
-    the local search method counts towards the limit provided by
-    \code{maxf} AFTER the local search returns.
+    If true, each normal PSO position update is followed by an
+    L-BFGS-B search with the provided position as initial guess. This
+    makes the implementation a hybrid approach. Defaults to
+    \code{FALSE} which disables BFGS for the local search. Note that
+    no attempt is done to control the maximal number of function
+    evaluations within the local search step (this can be done
+    separately through \code{hybrid.control}) but the number of
+    function evaluations used by the local search method counts
+    towards the limit provided by \code{maxf} AFTER the local search
+    returns. To support a broader class of hybrid approaches a
+    character vector can also be supplied with \dQuote{off} being
+    equivalent to false, \dQuote{on} equivalent to true, and
+    \dQuote{improved} implying that the local search will only be
+    performed when the swarm finds an improvement.
   }
   \item{hybrid.control:}{
     List with any additional control parameters to pass on to
@@ -175,6 +183,14 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
   }
   \item{message}{A descriptive message of the reason for termination.
   }
+
+If \code{trace} is positive and \code{trace.stats} is \code{TRUE} additionally the component:
+\item{stats}{A list of statistics collected at every reporting step with the following components:
+\describe{\item{\code{it}}{A vector with the iteration numbers}
+\item{\code{error}}{A vector with the corresponding best fitness values obtained}
+\item{\code{f}}{A list with the corresponding current swarm fitness values as a vector}
+\item{\code{x}}{A list with the corresponding current swarm positions as a matrix}
+}}
 }
 \references{
   Default parameters follow:
@@ -214,8 +230,23 @@ set.seed(1)
 psoptim(rep(NA,2),function(x) 20+sum(x^2-10*cos(2*pi*x)),
         lower=-5,upper=5,control=list(abstol=1e-8))
 
+set.seed(1)
+## Rastrigin function - local refinement with L-BFGS-B on improvements
+psoptim(rep(NA,2),function(x) 20+sum(x^2-10*cos(2*pi*x)),
+        lower=-5,upper=5,control=list(abstol=1e-8,hybrid="improved"))
+
 ## Griewank function
 psoptim(rep(NA,2),function(x) sum(x*x)/4000-prod(cos(x/sqrt(1:2)))+1,
         lower=-100,upper=100,control=list(abstol=1e-2))
+
+set.seed(1)
+## Rastrigin function with reporting
+o <- psoptim(rep(NA,2),function(x) 20+sum(x^2-10*cos(2*pi*x)),
+             lower=-5,upper=5,control=list(abstol=1e-8,trace=1,REPORT=1,
+             trace.stats=TRUE))
+\dontrun{
+plot(o$stats$it,o$stats$error,log="y",xlab="It",ylab="Error")
+points(o$stats$it,sapply(o$stats$f,min),col="blue",pch=2)
+}
 }
 \keyword{ optimize }

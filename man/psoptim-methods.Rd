@@ -9,14 +9,14 @@ General implementation of particle swarm optimization usable as a direct
 replacement for \code{\link{optim}}.
 }
 \section{Methods}{
-\describe{
-\item{\code{signature(par = "ANY", fn = "ANY", gr = "ANY", lower = "ANY", upper = "ANY")}}{
+\code{signature(par = "ANY", fn = "ANY", gr = "ANY", lower = "ANY", upper = "ANY")}:
+
 This is the standard replacement for \code{\link{optim}} without S4
 object usage.
-}
 
-\item{\code{signature(par = "test.problem", fn = "missing", gr =
-    "missing", lower = "missing", upper = "missing")}}{
+\code{signature(par = "test.problem", fn = "missing", gr = "missing",}\cr
+    \code{lower = "missing", upper = "missing")}:
+
   This is for running PSO on a specific test problem. Typically this is
   invoked on repetitive runs of a test problem and used to assess the
   choice of parameters for the underlying PSO algorithm. The function
@@ -24,6 +24,5 @@ object usage.
   returns an instance of \code{\linkS4class{test.result}} containing summary
   results. 
 }
-}}
 \keyword{methods}
 \keyword{optimize}

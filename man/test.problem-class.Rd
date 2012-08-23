@@ -31,7 +31,8 @@ the usual approach.
 \section{Methods}{
   \describe{
     \item{psoptim}{\code{signature(par = "test.problem", fn = "missing",
-	gr = "missing", lower = "missing", upper = "missing")}: for
+	gr = "missing",}\cr
+\code{lower = "missing", upper = "missing")}: for
       running PSO on the test problem. See \code{\link{psoptim-methods}}
       for details. }
     \item{show}{\code{signature(object = "test.problem")}: descriptive
