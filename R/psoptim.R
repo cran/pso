@@ -5,6 +5,20 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
     return(matrix(runif(n*m,0,1),nrow=n,ncol=m)*(upper-lower)+lower)
   }
   norm <- function(x) sqrt(sum(x*x))
+  rsphere.unif <- function(n,r) {
+    temp <- runif(n)
+    return((runif(1,min=0,max=r)/norm(temp))*temp)
+  }
+  svect <- function(a,b,n,k) {
+    temp <- rep(a,n)
+    temp[k] <- b
+    return(temp)
+  }
+  mrsphere.unif <- function(n,r) {
+    m <- length(r)
+    temp <- matrix(runif(n*m),n,m)
+    return(temp%*%diag(runif(m,min=0,max=r)/apply(temp,2,norm)))
+  }
   npar <- length(par)
   lower <- as.double(rep(lower, ,npar))
   upper <- as.double(rep(upper, ,npar))
@@ -15,7 +29,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
               v.max = NA, rand.order = TRUE, max.restart=Inf,
               maxit.stagnate = Inf,
               vectorize=FALSE, hybrid = FALSE, hybrid.control = NULL,
-              trace.stats = FALSE)
+              trace.stats = FALSE, type = "SPSO2007")
   nmsC <- names(con)
   con[(namc <- names(control))] <- control
   if (length(noNms <- namc[!namc %in% nmsC])) 
@@ -24,6 +38,9 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
   if (any(upper==Inf | lower==-Inf))
     stop("fixed bounds must be provided")
 
+  p.type <- pmatch(con[["type"]],c("SPSO2007","SPSO2011"))-1
+  if (is.na(p.type)) stop("type should be one of \"SPSO2007\", \"SPSO2011\"")
+  
   p.trace <- con[["trace"]]>0L # provide output on progress?
   p.fnscale <- con[["fnscale"]] # scale funcion by 1/fnscale
   p.maxit <- con[["maxit"]] # maximal number of iterations
@@ -31,7 +48,8 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
   p.abstol <- con[["abstol"]] # absolute tolerance for convergence
   p.reltol <- con[["reltol"]] # relative minimal tolerance for restarting
   p.report <- as.integer(con[["REPORT"]]) # output every REPORT iterations
-  p.s <- ifelse(is.na(con[["s"]]),floor(10+2*sqrt(npar)),con[["s"]]) # swarm size
+  p.s <- ifelse(is.na(con[["s"]]),ifelse(p.type==0,floor(10+2*sqrt(npar)),40),
+                con[["s"]]) # swarm size
   p.p <- ifelse(is.na(con[["p"]]),1-(1-1/p.s)^con[["k"]],con[["p"]]) # average % of informants
   p.w0 <- con[["w"]] # exploitation constant
   if (length(p.w0)>1) {
@@ -84,7 +102,15 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
   }
   X <- mrunif(npar,p.s,lower,upper)
   if (!any(is.na(par)) && all(par>=lower) && all(par<=upper)) X[,1] <- par
-  V <- (mrunif(npar,p.s,lower,upper)-X)/2
+  if (p.type==0) {
+    V <- (mrunif(npar,p.s,lower,upper)-X)/2
+  } else { ## p.type==1
+    V <- matrix(runif(npar*p.s,min=as.vector(lower-X),max=as.vector(upper-X)),npar,p.s)
+    p.c.p2 <- p.c.p/2 # precompute constants
+    p.c.p3 <- p.c.p/3
+    p.c.g3 <- p.c.g/3
+    p.c.pg3 <- p.c.p3+p.c.g3
+  }
   if (!is.na(p.vmax)) { # scale to maximal velocity
     temp <- apply(V,2,norm)
     temp <- pmin.int(temp,p.vmax)/temp
@@ -132,8 +158,16 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
           j <- which(links[,i])[which.min(f.p[links[,i]])] # best informant
         temp <- (p.w0+(p.w1-p.w0)*max(stats.iter/p.maxit,stats.feval/p.maxf))
         V[,i] <- temp*V[,i] # exploration tendency
-        V[,i] <- V[,i]+runif(npar,0,p.c.p)*(P[,i]-X[,i]) # exploitation
-        if (i!=j) V[,i] <- V[,i]+runif(npar,0,p.c.g)*(P[,j]-X[,i])
+        if (p.type==0) {
+          V[,i] <- V[,i]+runif(npar,0,p.c.p)*(P[,i]-X[,i]) # exploitation
+          if (i!=j) V[,i] <- V[,i]+runif(npar,0,p.c.g)*(P[,j]-X[,i])
+        } else { # SPSO 2011
+          if (i!=j)
+            temp <- p.c.p3*P[,i]+p.c.g3*P[,j]-p.c.pg3*X[,i] # Gi-Xi
+          else
+            temp <- p.c.p2*P[,i]-p.c.p2*X[,i] # Gi-Xi for local=best
+          V[,i] <- V[,i]+temp+rsphere.unif(npar,norm(temp))
+        }
         if (!is.na(p.vmax)) {
           temp <- norm(V[,i])
           if (temp>p.vmax) V[,i] <- (p.vmax/temp)*V[,i]
@@ -189,9 +223,17 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
                     which(links[,i])[which.min(f.p[links[,i]])]) 
       temp <- (p.w0+(p.w1-p.w0)*max(stats.iter/p.maxit,stats.feval/p.maxf))
       V <- temp*V # exploration tendency
-      V <- V+mrunif(npar,p.s,0,p.c.p)*(P-X) # exploitation
-      temp <- j!=(1:p.s)
-      V[,temp] <- V[,temp]+mrunif(npar,sum(temp),0,p.c.p)*(P[,j[temp]]-X[,temp])
+      if (p.type==0) {
+        V <- V+mrunif(npar,p.s,0,p.c.p)*(P-X) # exploitation
+        temp <- j!=(1:p.s)
+        V[,temp] <- V[,temp]+mrunif(npar,sum(temp),0,p.c.p)*(P[,j[temp]]-X[,temp])
+      } else { # SPSO 2011
+        temp <- j==(1:p.s)
+        temp <- P%*%diag(svect(p.c.p3,p.c.p2,p.s,temp))+
+          P[,j]%*%diag(svect(p.c.g3,0,p.s,temp))-
+          X%*%diag(svect(p.c.pg3,p.c.p2,p.s,temp)) # G-X
+        V <- V+temp+mrsphere.unif(npar,apply(temp,2,norm))
+      }
       if (!is.na(p.vmax)) {
         temp <- apply(V,2,norm)
         temp <- pmin.int(temp,p.vmax)/temp

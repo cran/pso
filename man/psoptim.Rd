@@ -46,7 +46,7 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
 
   The default control arguments implies that the algorithm follows the
   Standard PSO 2007 implementation by Maurice Clerc, but the code also
-  provides support for clamping the maximal velocity, restarting when
+  provides support for PSO 2011, clamping the maximal velocity, restarting when
   all particles converge to a single area and using BFGS as
   the local search direction.
 
@@ -87,7 +87,7 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
   reporting step are collected and returned. Defaults to \code{FALSE}.
   }
   \item{s:}{
-    The swarm size. Defaults to \code{floor(10+2*sqrt(length(par)))}.
+    The swarm size. Defaults to \code{floor(10+2*sqrt(length(par)))} unless \code{type} is \dQuote{SPSO2011} in which case the default is \code{40}.
   }
   \item{k:}{
     The exponent for calculating number of informants. Defaults to \code{3}.
@@ -158,6 +158,7 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
     \code{\link{optim}} when using L-BFGS-B for the local search.
     Defaults to \code{NULL}.
   }
+  \item{type:}{Character vector which describes which reference implementation of SPSO is followed. Can take the value of \dQuote{SPSO2007} or \dQuote{SPSO2011}. Defaults to \dQuote{SPSO2007}.}
 }
 }
 \value{
@@ -195,7 +196,17 @@ If \code{trace} is positive and \code{trace.stats} is \code{TRUE} additionally t
 \references{
   Default parameters follow:
 
-  Clerc, M. et al. (2010) \url{http://www.particleswarm.info/standard\_pso\_2007.c}
+  Clerc, M. et al. (2010)
+  \url{http://www.particleswarm.info/standard\_pso\_2007.c} except
+  when \code{type} is \dQuote{SPSO2011} in which case the differences
+  described in Clerc, M. (2011)
+  \url{http://www.particleswarm.info/SPSO\_descriptions.pdf}
+  apply. Notice that the SPSO 2011 implementation does not include any
+  of the bells and whistles from the implementation by M. Clerc et
+  al. and effectively only differes from the SPSO 2007 implementation
+  in the default swarm size, how velocities are initiated and the
+  update of velocities/positions which in the SPSO 2011 implementation
+  are invariant to rotation.
 
 The gradual change of \code{w} and clamping the maximal velocity is
 described in:

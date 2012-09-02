@@ -8,15 +8,15 @@
 \description{
 The package provides an implementation of particle swarm optimization
 which is consistent with the standard
-PSO 2007 by Maurice Clerc et al. Additionally a number of ancillary
+PSO 2007 and 2011 by Maurice Clerc et al. Additionally a number of ancillary
 routines are provided for easy testing and graphics.
 }
 \details{
 \tabular{ll}{
 Package: \tab pso\cr
 Type: \tab Package\cr
-Version: \tab 1.0.2\cr
-Date: \tab 2011-08-23\cr
+Version: \tab 1.0.3\cr
+Date: \tab 2011-09-02\cr
 License: \tab LGPL-3\cr
 LazyLoad: \tab yes\cr
 Depends: \tab methods\cr
@@ -27,10 +27,10 @@ used as a drop in replacement for \code{\link{optim}}. When used without
 additional control parameters the implementation is intended to be
 equivalent to SPSO 2007 (by M. Clerc et al.).
 
-Control parameters can be specified to clamp the maximal velocity,
-provide restarting when the swarm converges to a region as well as using
-BFGS as a local search strategy. See \code{\link{psoptim}}
-for details.
+Control parameters can be specified for SPSO 2011 (in its basic
+implementation), to clamp the maximal velocity, provide restarting
+when the swarm converges to a region as well as using BFGS as a local
+search strategy. See \code{\link{psoptim}} for details.
 }
 \author{
 Maintainer: Claus Bendtsen <papyrus.bendtsen@gmail.com>
@@ -64,19 +64,19 @@ o3 <- psoptim(p,control=list(trace=1,REPORT=1,hybrid=TRUE))
 show(o3) ## hybrid much faster
 
 ## Griewank
-set.seed(1)
+set.seed(2)
 p <- test.problem("griewank",10) # lots of local minima
 o1 <- psoptim(p,control=list(trace=1,REPORT=50))
 show(o1)
 
 ## The above sometimes get stuck in a local minima.
 ## Adding a restart to increase robustness.
-set.seed(1)
+set.seed(2)
 o2 <- psoptim(p,control=list(trace=1,REPORT=50,reltol=1e-4))
 show(o2)
 
 ## An then adding the hybrid
-set.seed(1)
+set.seed(2)
 o3 <- psoptim(p,control=list(trace=1,REPORT=50,reltol=1e-4,
               hybrid=TRUE,hybrid.control=list(maxit=10)))
 show(o3)
