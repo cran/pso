@@ -47,7 +47,7 @@ test.problem <- function(name, n.test=100, dim, maxf, objective, lower, upper) {
   griewank.objective <- 1e-3
   griewank.lower <- rep(-600,griewank.dim)
   griewank.upper <- rep(600,griewank.dim)
-  
+
   rosenbrock <- function(x) {
     t0 <- x+1
     t1 <- t0[2:n]-t0[1:(n-1)]*t0[1:(n-1)]
@@ -75,7 +75,7 @@ test.problem <- function(name, n.test=100, dim, maxf, objective, lower, upper) {
   rastrigin.objective <- 0
   rastrigin.lower <- rep(-5.12,rastrigin.dim)
   rastrigin.upper <- rep(5.12,rastrigin.dim)
-  
+
   ackley <- function(x) {
     return(-20*exp(-.2*sqrt(sum(x^2)/n))-exp(sum(cos(2*pi*x))/n)+20+exp(1))
   }
@@ -100,7 +100,7 @@ test.problem <- function(name, n.test=100, dim, maxf, objective, lower, upper) {
   environment(f) <- e
   g <- eval(as.name(paste(name,"grad",sep=".")))
   if (is.null(g)) {
-    g <- function(x,...) { require(numDeriv); return(grad(f,x,...)) }
+    g <- function(x,...) { return(numDeriv::grad(f,x,...)) }
   } else {
     environment(g) <- e
   }
@@ -109,7 +109,7 @@ test.problem <- function(name, n.test=100, dim, maxf, objective, lower, upper) {
                   eval(as.name(paste(name,"lower",sep="."))),lower)
   upper <- ifelse(missing(upper),
                   eval(as.name(paste(name,"upper",sep="."))),upper)
-  return(new(Class="test.problem",
+  return(methods::new(Class="test.problem",
              name=name,
              f=f,
              grad=g,
@@ -120,4 +120,3 @@ test.problem <- function(name, n.test=100, dim, maxf, objective, lower, upper) {
              lower=as.double(lower),
              upper=as.double(upper)))
 }
-

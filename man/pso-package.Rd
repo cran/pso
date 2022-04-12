@@ -15,10 +15,9 @@ routines are provided for easy testing and graphics.
 \tabular{ll}{
 Package: \tab pso\cr
 Type: \tab Package\cr
-Version: \tab 1.0.3\cr
-Date: \tab 2011-09-02\cr
+Version: \tab 1.0.4\cr
+Date: \tab 2022-04-12\cr
 License: \tab LGPL-3\cr
-LazyLoad: \tab yes\cr
 Depends: \tab methods\cr
 }
 
@@ -56,11 +55,11 @@ o1 <- psoptim(p,control=list(trace=1,REPORT=50))
 show(o1)
 
 set.seed(1)
-o2 <- psoptim(p,control=list(trace=1,REPORT=50,w=c(.7,.1))) 
+o2 <- psoptim(p,control=list(trace=1,REPORT=50,w=c(.7,.1)))
 show(o2)
 
 set.seed(1)
-o3 <- psoptim(p,control=list(trace=1,REPORT=1,hybrid=TRUE)) 
+o3 <- psoptim(p,control=list(trace=1,REPORT=1,hybrid=TRUE))
 show(o3) ## hybrid much faster
 
 ## Griewank

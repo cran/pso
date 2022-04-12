@@ -8,7 +8,7 @@ setMethod(f="show",
           signature="test.result",
           definition=function(object) {
             cat("TEST RESULTS\n")
-            show(object@problem)
+            methods::show(object@problem)
             r <- sapply(object@result,function(x) x$value)
             rate <- getSuccessRate(object)
             rate$feval <- c(0,rate$feval,object@problem@maxf)
@@ -19,7 +19,7 @@ setMethod(f="show",
                          rate$feval[1:(length(rate$feval)-1)]))/
                            (2*object@problem@maxf)
             cat("Objective mean: ",mean(r),"\n",sep="")
-            cat("Objective s.d.: ",sd(r),"\n",sep="")
+            cat("Objective s.d.: ",stats::sd(r),"\n",sep="")
             cat("Objective min: ",min(r),"\n",sep="")
             cat("Objective max.: ",max(r),"\n",sep="")
             cat("Success rate: ",100*sum(r<=object@problem@objective)/

@@ -32,7 +32,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
               trace.stats = FALSE, type = "SPSO2007")
   nmsC <- names(con)
   con[(namc <- names(control))] <- control
-  if (length(noNms <- namc[!namc %in% nmsC])) 
+  if (length(noNms <- namc[!namc %in% nmsC]))
     warning("unknown names in control: ", paste(noNms, collapse = ", "))
   ## Argument error checks
   if (any(upper==Inf | lower==-Inf))
@@ -40,7 +40,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
 
   p.type <- pmatch(con[["type"]],c("SPSO2007","SPSO2011"))-1
   if (is.na(p.type)) stop("type should be one of \"SPSO2007\", \"SPSO2011\"")
-  
+
   p.trace <- con[["trace"]]>0L # provide output on progress?
   p.fnscale <- con[["fnscale"]] # scale funcion by 1/fnscale
   p.maxit <- con[["maxit"]] # maximal number of iterations
@@ -78,7 +78,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
   else
     p.hcontrol["fnscale"] <- p.fnscale
   p.trace.stats <- as.logical(con[["trace.stats"]]) # collect detailed stats?
-  
+
   if (p.trace) {
     message("S=",p.s,", K=",con[["k"]],", p=",signif(p.p,4),", w0=",
             signif(p.w0,4),", w1=",
@@ -220,7 +220,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
         j <- rep(i.best,p.s)
       else # best informant
         j <- sapply(1:p.s,function(i)
-                    which(links[,i])[which.min(f.p[links[,i]])]) 
+                    which(links[,i])[which.min(f.p[links[,i]])])
       temp <- (p.w0+(p.w1-p.w0)*max(stats.iter/p.maxit,stats.feval/p.maxf))
       V <- temp*V # exploration tendency
       if (p.type==0) {
@@ -243,7 +243,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
       ## Check bounds
       temp <- X<lowerM
       if (any(temp)) {
-        X[temp] <- lowerM[temp] 
+        X[temp] <- lowerM[temp]
         V[temp] <- 0
       }
       temp <- X>upperM
@@ -302,7 +302,7 @@ psoptim <- function (par, fn, gr = NULL, ..., lower=-1, upper=1,
     stats.stagnate <- ifelse(init.links,stats.stagnate+1,0)
     error <- f.p[i.best]
     if (p.trace && stats.iter%%p.report==0) {
-      if (p.reltol!=0) 
+      if (p.reltol!=0)
         message("It ",stats.iter,": fitness=",signif(error,4),
                 ", swarm diam.=",signif(d,4))
       else
@@ -359,9 +359,8 @@ setMethod(f="psoptim",
                                     upper=par@upper,control=control,...)))
             }
             t <- as.vector(proc.time()-t)
-            return(new(Class="test.result",
+            return(methods::new(Class="test.result",
                        problem=par,
                        result=r,
                        time=t))
           })
-

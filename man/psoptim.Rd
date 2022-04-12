@@ -20,7 +20,7 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
   \item{fn}{
     A function to be minimized (or maximized), with first
     argument the vector of parameters over which minimization is
-    to take place.  It should return a scalar result.    
+    to take place.  It should return a scalar result.
   }
   \item{gr}{
     A function to return the gradient if local search is BFGS.
@@ -135,7 +135,7 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
     Logical; if \code{TRUE} the particles are processed in a vectorized
     manner. This reduces the overhead associated with iterating over
     each particle and may be more time efficient for cheap function
-    evaluations. Defaults to \code{FALSE}. 
+    evaluations. Defaults to \code{FALSE}.
   }
   \item{hybrid:}{
     If true, each normal PSO position update is followed by an
@@ -164,7 +164,7 @@ psoptim(par, fn, gr = NULL, ..., lower = -1, upper = 1, control = list())
 \value{
   A list, compatible with the output from \code{\link{optim}}, with components:
   \item{par}{
-    The best set of parameters found.    
+    The best set of parameters found.
   }
   \item{value}{
     The value of \code{fn} corresponding to \code{par}.
@@ -196,12 +196,9 @@ If \code{trace} is positive and \code{trace.stats} is \code{TRUE} additionally t
 \references{
   Default parameters follow:
 
-  Clerc, M. et al. (2010)
-  \url{http://www.particleswarm.info/standard\_pso\_2007.c} except
-  when \code{type} is \dQuote{SPSO2011} in which case the differences
-  described in Clerc, M. (2011)
-  \url{http://www.particleswarm.info/SPSO\_descriptions.pdf}
-  apply. Notice that the SPSO 2011 implementation does not include any
+  Clerc, M. (2011)
+  \url{https://hal.archives-ouvertes.fr/hal-00764996/document}.
+  Notice that the SPSO 2011 implementation does not include any
   of the bells and whistles from the implementation by M. Clerc et
   al. and effectively only differes from the SPSO 2007 implementation
   in the default swarm size, how velocities are initiated and the
@@ -211,11 +208,11 @@ If \code{trace} is positive and \code{trace.stats} is \code{TRUE} additionally t
 The gradual change of \code{w} and clamping the maximal velocity is
 described in:
 
-Parsopoulos, K.E. and Vrahatis M.N. (2002) 
+Parsopoulos, K.E. and Vrahatis M.N. (2002)
 \emph{Recent approaches to global optimization problems
 through Particle Swarm Optimization}.
 Natural Computing 1: 235-306.
-  
+
 
 The restart (provided through \code{reltol}) is similar to:
 
@@ -223,8 +220,8 @@ Evers G.I. and Ghalia M.B.
 \emph{Regrouping Particle Swarm Optimization:
 A New Global Optimization Algorithm with
 Improved Performance Consistency Across
-Benchmarks}. \url{http://www.georgeevers.org/RegPSO.pdf}
-  
+Benchmarks}. \url{https://bee22.com/resources/Evers\%202009.pdf}
+
   The hybrid approach is similar to:
 
   Qin J., Yin Y. and Ban X. (2010)
